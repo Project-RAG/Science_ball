@@ -2,7 +2,7 @@
 
 ## Current status
 
-- Current task: `TASK_009_dictionary_entity_extraction`
+- Current task: `TASK_012_elasticsearch_mappings`
 - Status: completed
 - Last updated by: Gemma (Integrator)
 - Last updated at: 2026-07-03
@@ -23,6 +23,9 @@
 | TASK_007_text_parsers | completed | MVP text extraction for TXT, MD, PDF, DOCX, CSV, XLSX implemented |
 | TASK_008_chunking_service | completed | Deterministic sliding window chunking with persistence implemented |
 | TASK_009_dictionary_entity_extraction | completed | Dictionary-based entity extraction pipeline implemented |
+| TASK_010_numeric_extractor_and_units | completed | Numeric extractor and unit normalization implemented |
+| TASK_011_confidence_service | completed | Confidence scoring system for facts implemented |
+| TASK_012_elasticsearch_mappings | completed | ES index management and mappings defined |
 
 ---
 
@@ -48,11 +51,19 @@
         - Alias resolution and "longest-match-first" extraction logic.
         - `EntityExtractionService` orchestrating the process with idempotency (deleting old entities before re-extraction).
         - `EntitiesRepository` for persisting extracted entities in PostgreSQL.
+    - Numeric Extraction:
+        - `NumericExtractor`: Deterministic regex-based values and units extraction.
+        - `UnitNormalizer`: Normalization of physical quantities to SI.
+    - Confidence Scoring:
+        - `ConfidenceService`: Implementation of the MVP confidence formula.
+- Elasticsearch Layer:
+    - Index naming conventions (`rd_docs_v1`, `rd_chunks_v1`, etc.).
+    - Full mappings for all core indices including vector search and nested numeric conditions.
+    - `ElasticsearchIndexManager` for idempotent index setup and updates.
 
 ### Not implemented yet
-- Numeric extractor and units handling.
+- Indexing to Elasticsearch and Neo4j (actual data movement).
 - Relation extraction.
-- Indexing to Elasticsearch and Neo4j.
 - LLM integration via Gateway.
 - Frontend.
 
@@ -61,12 +72,11 @@
 ## Changed files in latest task
 
 ```text
-backend/app/services/nlp/__init__.py
-backend/app/services/nlp/dictionaries.py
-backend/app/services/nlp/entity_extractor.py
-backend/app/services/nlp/entity_extraction_service.py
-backend/app/repositories/entities.py
-backend/tests/unit/test_entity_extractor.py
+backend/app/search/__init__.py
+backend/app/search/index_names.py
+backend/app/search/mappings.py
+backend/app/search/index_manager.py
+backend/tests/unit/test_elasticsearch_mappings.py
 ```
 
 ---
@@ -74,13 +84,11 @@ backend/tests/unit/test_entity_extractor.py
 ## Validation commands run
 
 ```bash
-cd backend
-python -m pytest tests/unit/test_entity_extractor.py
-python -m compileall app
+export PYTHONPATH=$PYTHONPATH:. && python -m pytest backend/tests/unit/test_elasticsearch_mappings.py && python -m compileall backend/app
 ```
 
 Result:
-- `pytest`: 4 passed (covered basic extraction, alias resolution, longest-match priority, and service integration).
+- `pytest`: 4 passed (verified mapping structure, access_level presence, vector search config, and index manager logic).
 - `compileall`: Success.
 
 ---
@@ -91,6 +99,7 @@ Result:
 |---|---|---|---|
 | Tabular Data | pandas `.to_string()` | Simplified text representation for MVP | TASK_013+ (during indexing) |
 | PDF Pages | `[Page X]` markers | Basic structure hint without complex layout analysis | Later refinement |
+| Elasticsearch Client | `unittest.mock` | Testing IndexManager logic without requiring a running ES cluster | N/A |
 
 ---
 
@@ -121,20 +130,20 @@ New dependencies added to `backend/pyproject.toml` (implicit):
 
 Recommended next task:
 ```text
-TASK_010_numeric_extractor_and_units.md
+TASK_013_indexing_chunks_and_facts.md
 ```
 
 Read before starting:
 - `docs/SDD.md`
 - `docs/AI_RULES.md`
 - `docs/HANDOFF.md`
-- `docs/tasks/TASK_010_numeric_extractor_and_units.md`
+- `docs/tasks/TASK_013_indexing_chunks_and_facts.md`
 
-The next task should reuse the entities extracted in TASK_009 and implement a specialized extractor for numeric values and their associated units, which are critical for technical knowledge maps.
+The next task should implement the actual logic for pushing chunks and facts from PostgreSQL to Elasticsearch using the mappings and manager created in this task.
 
 ---
 
 ## Commit readiness
 
 - Ready to commit: yes
-- Reason: TASK_009 fully implemented and verified. The dictionary extraction logic is isolated, supports alias resolution, handles longest-match priority, and is integrated into the ingestion pipeline via a service layer. No secrets introduced.
+- Reason: TASK_012 fully implemented. All indices defined in SDD are mapped, including vector dimensions and access_level filters. The IndexManager provides a clean API for idempotent setup. Unit tests pass. No secrets introduced.
