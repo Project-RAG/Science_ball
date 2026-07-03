@@ -2,7 +2,7 @@
 
 ## Current status
 
-- Current task: `TASK_001_backend_skeleton`
+- Current task: `TASK_002_docker_compose_and_settings`
 - Status: completed
 - Last updated by: Gemma (Integrator)
 - Last updated at: 2026-07-03
@@ -15,6 +15,7 @@
 |---|---|---|---|
 | TASK_000_project_orchestration_docs | completed | TBD | Orchestration docs created |
 | TASK_001_backend_skeleton | completed | TBD | FastAPI skeleton implemented and verified |
+| TASK_002_docker_compose_and_settings | completed | TBD | Infrastructure Dockerized, env settings centralized |
 
 ---
 
@@ -23,35 +24,33 @@
 ### Implemented
 - Orchestration documentation and task list.
 - SDD copied to `docs/SDD.md`.
-- Minimal FastAPI backend skeleton (app factory, health endpoints, settings model).
-- Basic unit tests for health checks.
-- Dependency configuration in `pyproject.toml`.
+- Minimal FastAPI backend skeleton (app factory, health endpoints).
+- Full MVP infrastructure in `docker-compose.yml` (Postgres, Redis, ES, Neo4j, MinIO).
+- Backend Dockerfile with multi-stage build and non-root user.
+- Centralized settings model reading from environment variables.
+- `.env.example` providing a full template for all services.
+- Git ignore configuration to prevent secret leakage.
 
 ### Not implemented yet
-- Docker Compose runtime.
-- Storage clients.
-- PostgreSQL models and Alembic.
-- Document upload.
-- Ingestion pipeline.
-- NLP/search/graph/LLM/frontend.
+- Storage clients implementation.
+- PostgreSQL models and Alembic migrations.
+- Document upload logic.
+- Ingestion pipeline tasks.
+- NLP/search/graph/LLM business logic.
+- Frontend.
 
 ---
 
 ## Changed files in latest task
 
 ```text
-backend/pyproject.toml
-backend/app/__init__.py
-backend/app/main.py
+docker-compose.yml
+.env.example
+.gitignore
+Makefile
+backend/Dockerfile
 backend/app/settings.py
-backend/app/dependencies.py
-backend/app/api/__init__.py
-backend/app/api/router.py
-backend/app/api/routes/__init__.py
-backend/app/api/routes/health.py
-backend/tests/__init__.py
-backend/tests/unit/__init__.py
-backend/tests/unit/test_health.py
+backend/pyproject.toml
 ```
 
 ---
@@ -59,16 +58,42 @@ backend/tests/unit/test_health.py
 ## Validation commands run
 
 ```bash
-cd backend
-python -m pytest
-python -m compileall app
+# Check docker compose configuration
+docker compose config
+
+# Verify backend tests still pass
+cd backend && python -m pytest
+
+# Check that .env is ignored by git
+git check-ignore -v .env
 ```
 
 Result:
 ```text
-pytest: 2 passed in 0.45s
-compileall: Success (no errors)
+docker compose config: OK (all 7 services parsed)
+pytest: 2 passed
+git check-ignore: OK (.env ignored)
 ```
+
+---
+
+## Docker Services & Env Vars
+
+### Added Services
+- `backend`: FastAPI application.
+- `worker`: Celery worker placeholder.
+- `postgres`: Database for transactional data.
+- `redis`: Cache and message broker.
+- `elasticsearch`: Full-text and vector search.
+- `neo4j`: Knowledge graph.
+- `minio`: Object storage for documents.
+
+### Key Environment Groups added to settings.py / .env.example
+- **App**: APP_NAME, DEBUG, BACKEND_PORT.
+- **Infrastructure**: DATABASE_URL, REDIS_URL, ELASTICSEARCH_URL, NEO4J_URI, MINIO_ENDPOINT.
+- **YandexGPT**: YANDEX_API_KEY, YANDEX_FOLDER_ID, model settings and endpoints.
+- **LLM Common**: Temperature, tokens, timeouts, retries.
+- **Local LLM**: LOCAL_LLM_ENDPOINT, LOCAL_LLM_MODEL (Ollama fallback).
 
 ---
 
@@ -77,7 +102,7 @@ compileall: Success (no errors)
 | Area | Stub/mock | Reason | Removal task |
 |---|---|---|---|
 | Dependencies | `backend/app/dependencies.py` is empty | Skeleton phase; real deps in later tasks | TASK_003/TASK_004 |
-| Settings | Placeholder URLs/creds for DB, Redis, ES, Neo4j, MinIO, LLM | No infra yet; to be configured via env in TASK_002 | TASK_002 |
+| Worker | `worker` service in compose | Placeholder for Celery runtime; no tasks yet | TASK_005+ |
 
 ---
 
@@ -116,19 +141,19 @@ Never commit:
 Recommended next task:
 
 ```text
-TASK_002_docker_compose_and_settings.md
+TASK_003_storage_clients.md
 ```
 
 Read before starting:
 - `docs/SDD.md`
 - `docs/AI_RULES.md`
 - `docs/HANDOFF.md`
-- `docs/tasks/TASK_002_docker_compose_and_settings.md`
+- `docs/tasks/TASK_003_storage_clients.md`
 
 ---
 
 ## Commit readiness
 
 - Ready to commit: yes
-- Reason: TASK_001 fully implemented, verified by tests and compilation, no secrets leaked, strictly follows SDD boundary.
+- Reason: TASK_002 fully implemented and verified. Docker config is valid, .env is ignored, no secrets leaked in example files. All boundaries respected.
 - Required before commit: none

@@ -1,2 +1,36 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project data
 dataset/
 Memory/
+.claude
+
+# Docker volumes (local dev)
+postgres_data/
+es_data/
+neo4j_data/
+neo4j_logs/
+redis_data/
+minio_data/
