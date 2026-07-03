@@ -30,3 +30,11 @@ async def get_minio_client() -> Minio:
     Minio client is synchronous, so no async context manager is needed.
     """
     return get_minio()
+
+
+async def get_ingestion_service() -> "IngestionJobService":
+    """Provide the IngestionJobService with its required repository."""
+    from app.repositories.ingestion_jobs import IngestionJobRepository
+    from app.services.ingestion.job_service import IngestionJobService
+
+    return IngestionJobService(repository=IngestionJobRepository())

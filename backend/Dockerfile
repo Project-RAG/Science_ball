@@ -1,29 +1,27 @@
 # ── Build stage ─────────────────────────────────────────────────────
-FROM python:3.11-slim-bookworm AS builder
+FROM python:3.11-slim-bookworm
 
 WORKDIR /app
 
-# Install build dependencies
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
 # Copy dependency manifests
 COPY pyproject.toml .
 
-# Install dependencies into a temporary location
-RUN pip install --no-cache-dir --target=/install \
-    fastapi>=0.110,<1.0 \
-    uvicorn[standard]>=0.29,<1.0 \
-    pydantic-settings>=2.2,<3.0 \
-    celery>=5.3,<6.0 \
-    redis>=5.0,<6.0
-
-# ── Runtime stage ───────────────────────────────────────────────────
-FROM python:3.11-slim-bookworm
-
-WORKDIR /app
-
-# Copy installed packages from builder
-COPY --from=builder /install /usr/local/lib/python3.11/site-packages
+# Install dependencies directly into the system
+RUN pip install --no-cache-dir \
+    "fastapi>=0.110,<1.0" \
+    "uvicorn[standard]>=0.29,<1.0" \
+    "pydantic-settings>=2.2,<3.0" \
+    "celery>=5.3,<6.0" \
+    "redis>=5.0,<6.0"
 
 # Copy application code
 COPY app/ ./app/
